@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Fitness Video Quiz</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 { margin-bottom: 20px; text-align: center; color: #4CAF50; }
+        #video-container {
+            position: relative;
+            max-width: 800px;
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        video { width: 100%; height: auto; display: block; }
+        #quiz-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        .question { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            width: 80%;
+            max-width: 400px;
+        }
+        button {
+            padding: 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #4CAF50; }
+        #feedback { margin-top: 15px; font-size: 0.9rem; color: #ff6b6b; height: 20px; }
+    </style>
+</head>
+<body>
+
+    <h1>Mental Fitness Check</h1>
+
+    <div id="video-container">
+        <!-- REPLACE 'your-video.mp4' with the name of your file -->
+        <video id="main-video" src="your-video.mp4" controls></video>
+        
+        <div id="quiz-overlay">
+            <div class="question" id="question-text">Loading question...</div>
+            <div class="options-grid" id="options-container"></div>
+            <div id="feedback"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- QUIZ DATA ---
+        // Change these questions and timestamps to match your files
+        const quizStops = [
+            {
+                time: 10, // Timestamp in seconds where video pauses
+                question: "Which mental fitness habit helps build resilience against daily stress?",
+                options: ["Multitasking constantly", "Practicing daily mindfulness", "Suppressing all negative emotions", "Skipping sleep to work"],
+                correctIndex: 1
+            },
+            {
+                time: 25, // Next pause
+                question: "What is a primary benefit of taking short mental breaks during the day?",
+                options: ["It drains cognitive energy", "It improves focus and prevents burnout", "It makes you less productive", "It has no effect"],
+                correctIndex: 1
+            }
+        ];
+
+        const video = document.getElementById('main-video');
+        const overlay = document.getElementById('quiz-overlay');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+
+        let currentStopIndex = 0;
+        let hasPausedAt = new Set(); // Keeps track of stops we've already triggered
+
+        // --- LOGIC ---
+        video.addEventListener('timeupdate', () => {
+            if (currentStopIndex >= quizStops.length) return;
+
+            const currentStop = quizStops[currentStopIndex];
+            
+            // Check if we reached the pause time & haven't stopped here yet
+            if (video.currentTime >= currentStop.time && !hasPausedAt.has(currentStop.time)) {
+                video.pause();
+                hasPausedAt.add(currentStop.time);
+                showQuiz(currentStop);
+            }
+        });
+
+        function showQuiz(stopData) {
+            questionText.textContent = stopData.question;
+            optionsContainer.innerHTML = '';
+            feedback.textContent = '';
+            overlay.style.display = 'flex';
+
+            stopData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(index, stopData.correctIndex);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, correctIndex) {
+            if (selectedIndex === correctIndex) {
+                overlay.style.display = 'none';
+                video.play();
+                currentStopIndex++; // Move to the next question set
+            } else {
+                feedback.textContent = "Not quite. Take a deep breath and try again!";
+            }
+        }
+    </script>
+</body>
+</html>
